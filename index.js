@@ -1,15 +1,18 @@
+require("dotenv").config();
+
 const express = require("express");
 
 const app = express();
 
+
+
+
 const mongoose = require("mongoose");
 
-const url =
-  "mongodb+srv://AgmadRagab:learn2412@learn-mongodb.djiozux.mongodb.net/<codeZone>?appName=learn-mongodb";
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.error(err));
 
-mongoose.connect(url).then(() => {
-  console.log("mongodb server started");
-});
 
 app.use(express.json());
 

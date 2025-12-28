@@ -1,58 +1,62 @@
+const { validationResult } = require("express-validator");
+const Course = require("../models/course.model");
 
-
-let {courses} = require('../data/courses')
-const {validationResult } = require("express-validator");
-
-
-const getAllCourses = (req, res) => {
+const getAllCourses = async (req, res) => {
+  // get all courses from DB using Course Model
+  const courses = await Course.find();
   res.json(courses);
-}
+};
 
-const getCourse = (req, res) => {
-  const courseId = +req.params.courseId;
-  const course = courses.find((course) => course.id === courseId);
-  if (!course) {
-    return res.status(404).json({ msg: "course not found" });
-  }
-  res.json(course);
-}
-
-const addCourse =  (req, res) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json(errors.array());
+const getCourse = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.courseId);
+    if (!course) {
+      return res.status(404).json({ msg: "course not found" });
     }
-    const course = { id: courses.length + 1, ...req.body };
-    courses.push(course);
+    return res.json(course);
+  } catch (err) {
+    return res.status(400).json({ msg: "invalid Object ID" });
+  }
+};
 
-    res.status(201).json(courses);
+const addCourse = async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json(errors.array());
   }
 
-const updateCourse = (req, res) => {
-  const courseId = +req.params.courseId;
+  const newCourse = new Course(req.body);
 
-  const course = courses.find((course) => course.id === courseId);
+  await newCourse.save();
 
-  if (!course) {
-    return res.status(404).json({ msg: "course not found" });
+  res.status(201).json(newCourse);
+};
+
+const updateCourse = async (req, res) => {
+  const courseId = req.params.courseId;
+  try {
+    const updatedCourse = await Course.updateOne(
+      { _id: courseId },
+      {
+        $set: { ...req.body },
+      }
+    );
+    return res.status(200).json(updatedCourse);
+  } catch (err) {
+    return res.status(400).json({ error: err });
   }
+};
 
-  const index = courses.findIndex((course) => course.id === courseId);
-  courses[index] = { ...courses[index], ...req.body };
-  res.status(200).json(courses[index]);
-}
+const deleteCourse = async (req, res) => {
+  const result = await Course.deleteOne({ _id: req.params.courseId });
 
-const deleteCourse = (req, res) => {
-  const courseId = +req.params.courseId;
-  courses = courses.filter((course) => course.id !== courseId);
-
-  res.status(200).json({ success: true });
-}
+  res.status(200).json({ success: true, msg: result });
+};
 
 module.exports = {
-    getAllCourses,
-    getCourse,
-    addCourse,
-    updateCourse,
-    deleteCourse
-}
+  getAllCourses,
+  getCourse,
+  addCourse,
+  updateCourse,
+  deleteCourse,
+};
