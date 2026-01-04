@@ -5,7 +5,7 @@ const httpStatusText = require("../utils/httpStatusText");
 
 const getAllCourses = async (req, res) => {
   // get all courses from DB using Course Model
-  const courses = await Course.find();
+  const courses = await Course.find({}, { __v: false });
   res.json({ status: httpStatusText.SUCCESS, data: { courses } });
 };
 
@@ -54,9 +54,16 @@ const updateCourse = async (req, res) => {
         $set: { ...req.body },
       }
     );
-    return res.status(200).json({ status: httpStatusText.SUCCESS, data: { course:updatedCourse }});
+    return res
+      .status(200)
+      .json({
+        status: httpStatusText.SUCCESS,
+        data: { course: updatedCourse },
+      });
   } catch (err) {
-    return res.status(400).json({ status: httpStatusText.ERROR, message: err.message });
+    return res
+      .status(400)
+      .json({ status: httpStatusText.ERROR, message: err.message });
   }
 };
 
